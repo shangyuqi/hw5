@@ -1,0 +1,72 @@
+clear
+close all,
+clc;
+[pic,map]=imread('C:\Users\Dell\Desktop\sixth assignment\lena.bmp');
+pic=double(pic);
+picbut=pic;
+picgau=pic;
+%size of pic m*n
+m=size(pic,1);
+n=size(pic,2);
+m1=2*m;
+n1=2*n;
+pickuo=zeros(m1,n1);
+dftpic=pickuo;
+gbut=pickuo;ggau=pickuo;
+dis=pickuo;
+%place center in the middle n1/2,m1/2
+for i=1:m
+    for j=1:n
+        pickuo(i,j)=pic(i,j);
+    end
+end
+
+dftpic=fft2(pickuo);
+
+d0=50; %cutoff frequency
+n0=3;  %order n
+butlv=0;
+picmu=0;
+gaulv=0;
+
+%butterworth highpass filters
+for i=1:m1
+    for j=1:n1
+        dis(i,j)=(i-m-1)^2+(j-n-1)^2;
+        gbut(i,j)=dftpic(i,j)/(1+(d0^(2*n0))/(dis(i,j)^n0));
+        butlv=butlv+conj(gbut(i,j))*gbut(i,j);
+        picmu=picmu+conj(dftpic(i,j))*dftpic(i,j);
+    end
+end
+butratio=butlv/picmu
+butkuo=ifft2(gbut);
+for i=1:m
+    for j=1:n
+        picbut(i,j)=butkuo(i,j)*(-1)^(i+j);
+    end
+end
+picbut=picbut.*(255/max(max(picbut)));
+picbut=uint8(real(picbut));
+subplot(1,2,1)
+imshow(picbut)
+title('巴特沃兹高通滤波器')
+
+%Guassin highpass filters
+for i=1:m1
+    for j=1:n1
+        ggau(i,j)=dftpic(i,j)*(1-exp(-dis(i,j)/2/(d0^2)));
+        gaulv=gaulv+conj(ggau(i,j))*ggau(i,j);
+    end
+end
+gauratio=gaulv/picmu
+gaukuo=ifft2(ggau);
+for i=1:m
+    for j=1:n
+        picgau(i,j)=gaukuo(i,j)*(-1)^(i+j);
+    end
+end
+picgau=picgau.*255/max(max(picgau));
+picgau=uint8(real(picgau));
+subplot(1,2,2)
+imshow(picgau)
+title('高斯高通滤波')
